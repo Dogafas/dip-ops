@@ -1,0 +1,1 @@
+Каталог `terraform/global/s3` содержит конфигурацию для создания самого бакета Object Storage (`chipguru-diploma-tf-state`)
