@@ -36,3 +36,10 @@ module "vpc" {
     }
   }
 }
+
+module "k8s_cluster" {
+  source          = "../../modules/k8s_cluster"
+  subnet_ids      = module.vpc.subnet_ids
+  public_key_path = var.public_key_path
+}
+

@@ -30,3 +30,8 @@ variable "storage_secret_key" {
   description = "Static secret key for Yandex Object Storage"
   sensitive   = true
 }
+
+variable "public_key_path" {
+  type        = string
+  description = "Path to the SSH public key"
+}

@@ -6,3 +6,10 @@
 *.tfstate.*
 *.tfvars
 *.json
+
+# Kubespray upstream & virtualenv
+kubespray/
+!kubespray/inventory/
+kubespray/inventory/*
+!kubespray/inventory/mycluster/
+kubespray/venv/
