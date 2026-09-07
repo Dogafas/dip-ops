@@ -60,14 +60,14 @@ all:
       access_ip: $WORKER1_INT
       ansible_user: $SSH_USER
       ansible_ssh_private_key_file: $SSH_KEY
-      ansible_ssh_common_args: '-o ProxyJump=$SSH_USER@$MASTER_PUB -o IdentityFile=$SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+      ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $SSH_KEY $SSH_USER@$MASTER_PUB" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     node3:
       ansible_host: $WORKER2_INT
       ip: $WORKER2_INT
       access_ip: $WORKER2_INT
       ansible_user: $SSH_USER
       ansible_ssh_private_key_file: $SSH_KEY
-      ansible_ssh_common_args: '-o ProxyJump=$SSH_USER@$MASTER_PUB -o IdentityFile=$SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+      ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $SSH_KEY $SSH_USER@$MASTER_PUB" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
   children:
     kube_control_plane:
       hosts:

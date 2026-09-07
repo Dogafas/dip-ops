@@ -53,3 +53,24 @@ echo "AWS Key ID: $AWS_ACCESS_KEY_ID"
 `cd /.../.../.../dip-ops/terraform/environments/stage && terraform destroy` (сначала удаляются подсети и VPC, чтобы освободить зависимости).
 
 `cd /.../.../.../dip-ops/terraform/global/s3` — переход на локальный стейт (`terraform init -migrate-state` с закомментированным `backend "s3"`) и затем `terraform destroy` (удаление корзины Object Storage).
+
+##### Памятка для быстрого старта после перерыва
+
+```
+# 1. Поднимаем ВМ в облаке
+cd /.../.../.../dip-ops/terraform/environments/stage
+terraform apply --auto-approve
+
+# 2. Генерируем инвентарь
+cd /.../.../.../dip-ops
+./generate_inventory.sh
+
+# 3. Раскатываем кластер (из venv)
+cd kubespray
+source venv/bin/activate
+ansible-playbook -i inventory/mycluster/hosts.yaml --become --become-user=root cluster.yml
+
+# 4. Скачиваем kubeconfig (скрипт сделает это автоматически)
+cd /.../.../.../dip-ops
+./generate_inventory.sh
+```
