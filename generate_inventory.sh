@@ -7,7 +7,6 @@ BASE_DIR="$SCRIPT_DIR"
 
 # 2. Подгрузка параметров из .env (если файл существует)
 if [ -f "$BASE_DIR/.env" ]; then
-  # Экспортируем переменные без вывода секретов
   set -a
   source "$BASE_DIR/.env"
   set +a
@@ -61,14 +60,14 @@ all:
       access_ip: $WORKER1_INT
       ansible_user: $SSH_USER
       ansible_ssh_private_key_file: $SSH_KEY
-      ansible_ssh_common_args: '-o ProxyJump=$SSH_USER@$MASTER_PUB -o IdentityFile=$SSH_KEY -o StrictHostKeyChecking=no'
+      ansible_ssh_common_args: '-o ProxyJump=$SSH_USER@$MASTER_PUB -o IdentityFile=$SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     node3:
       ansible_host: $WORKER2_INT
       ip: $WORKER2_INT
       access_ip: $WORKER2_INT
       ansible_user: $SSH_USER
       ansible_ssh_private_key_file: $SSH_KEY
-      ansible_ssh_common_args: '-o ProxyJump=$SSH_USER@$MASTER_PUB -o IdentityFile=$SSH_KEY -o StrictHostKeyChecking=no'
+      ansible_ssh_common_args: '-o ProxyJump=$SSH_USER@$MASTER_PUB -o IdentityFile=$SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
   children:
     kube_control_plane:
       hosts:
@@ -89,3 +88,32 @@ all:
 YAML
 
 echo "==> Инвентарь успешно сгенерирован в $INV_FILE"
+
+# 4. Автоматическая синхронизация ~/.kube/config
+echo "==> Проверка доступности кластера для синхронизации kubeconfig..."
+SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5)
+
+# Проверяем, существует ли уже файл admin.conf на мастере
+if ssh "${SSH_OPTS[@]}" -i "$SSH_KEY" "$SSH_USER@$MASTER_PUB" "sudo test -f /etc/kubernetes/admin.conf" > /dev/null 2>&1; then
+  echo "==> Обнаружен установленный кластер. Выгрузка ~/.kube/config..."
+  mkdir -p "$HOME/.kube"
+  
+  # Забираем конфиг и выставляем безопасные права
+  ssh "${SSH_OPTS[@]}" -i "$SSH_KEY" "$SSH_USER@$MASTER_PUB" "sudo cat /etc/kubernetes/admin.conf" > "$HOME/.kube/config"
+  chmod 600 "$HOME/.kube/config"
+
+  # Заменяем адрес API-сервера на белый IP мастера
+  sed -i -E "s#(server: https://)[^:]+(:6443)#\1${MASTER_PUB}\2#" "$HOME/.kube/config"
+
+  # Отключаем валидацию TLS для работы по публичному IP (поскольку он отсутствует в SAN по умолчанию)
+  kubectl config set-cluster cluster.local --insecure-skip-tls-verify=true > /dev/null 2>&1 || true
+
+  echo "==> ~/.kube/config успешно обновлен и настроен на https://${MASTER_PUB}:6443"
+  if command -v kubectl > /dev/null 2>&1; then
+    echo "==> Проверка связи с кластером (kubectl get nodes):"
+    kubectl get nodes -o wide
+  fi
+else
+  echo "==> Kubernetes еще не установлен на мастере (/etc/kubernetes/admin.conf не найден)."
+  echo "==> Запустите Ansible playbook (cluster.yml), затем повторно вызовите $0 для получения kubeconfig."
+fi
