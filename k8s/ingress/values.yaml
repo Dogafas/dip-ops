@@ -1,0 +1,34 @@
+controller:
+  # Запуск в сетевом пространстве хоста мастера (прямое прослушивание 80/443 на внешнем IP)
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+
+  # Назначение типа сервиса ClusterIP, так как hostNetwork открывает порты ноды напрямую
+  service:
+    type: ClusterIP
+
+  # Фиксация пода контроллера строго на мастер-ноде (где находится публичный IP)
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  # Допуск запуска на мастер-ноде с установленными тейнтами
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+  # Ограничение ресурсов для экономии памяти на узле мастера
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+  # Отключение лишних метрик admission-вебхуков при первоначальном деплое
+  admissionWebhooks:
+    enabled: false

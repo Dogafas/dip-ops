@@ -60,10 +60,18 @@ echo "AWS Key ID: $AWS_ACCESS_KEY_ID"
 # 1. Поднимаем ВМ в облаке
 cd /.../.../.../dip-ops/terraform/environments/stage
 terraform apply --auto-approve
+terraform refresh
 
 # 2. Генерируем инвентарь
 cd /.../.../.../dip-ops
 ./generate_inventory.sh
+
+# 2.1 Проверка связности узлов через Ansible
+cd /.../.../.../dip-ops/kubespray
+source venv/bin/activate
+ansible -i inventory/mycluster/hosts.yaml all -m ping
+
+ - (Все 3 узла (node1, node2, node3) должны вернуть SUCCESS => {"ping": "pong"}.)
 
 # 3. Раскатываем кластер (из venv)
 cd kubespray
