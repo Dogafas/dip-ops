@@ -1,0 +1,48 @@
+# Настройки Grafana
+grafana:
+  enabled: true
+  adminPassword: "prom-operator"
+  
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.130.193.50.58.nip.io
+    paths:
+      - /
+    pathType: Prefix
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Настройки Prometheus
+prometheus:
+  prometheusSpec:
+    retention: 2d
+    resources:
+      requests:
+        cpu: 150m
+        memory: 512Mi
+      limits:
+        cpu: 300m
+        memory: 1024Mi
+
+# Настройки Alertmanager
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+# Системный сборщик метрик хостов (node-exporter)
+nodeExporter:
+  enabled: true
