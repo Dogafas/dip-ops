@@ -38,27 +38,29 @@ infra-up:
 
 k8s-up:
 	@echo "Получение публичного IP мастера..."
-	# Исправлено: загружаем .env перед вызовом terraform
+	# Загружаем .env перед вызовом terraform
 	$(eval MASTER_IP := $(shell $(ENV_LOAD) cd terraform/environments/stage && terraform output -raw k8s_master_public_ip))
 	@echo "Очистка старых SSH-ключей для $(MASTER_IP)..."
 	@ssh-keygen -f ~/.ssh/known_hosts -R $(MASTER_IP) 2>/dev/null || true
 	@echo "Ожидание доступности SSH на $(MASTER_IP)..."
 	@until nc -z -v -w5 $(MASTER_IP) 22 2>/dev/null; do echo "Ждем SSH..."; sleep 3; done
 	@echo "Генерация инвентаря..."
-	# Исправлено: загружаем .env перед выполнением скрипта
+	# Загружаем .env перед выполнением скрипта
 	$(ENV_LOAD) ./generate_inventory.sh
 	@echo "Запуск Kubespray..."
 	# Исправлено: загружаем .env и активируем venv в одной команде
 	$(ENV_LOAD) bash -c "source $(VENV_DIR)/bin/activate && cd kubespray && ansible-playbook -i inventory/mycluster/hosts.yaml --become --become-user=root cluster.yml -e 'download_retries=10' -e 'download_timeout=60'"
 	@echo "Синхронизация kubeconfig..."
-	# Исправлено: загружаем .env перед выполнением скрипта
+	# Загружаем .env перед выполнением скрипта
 	$(ENV_LOAD) ./generate_inventory.sh
 
 apps-up:
 	@echo "Ожидание готовности узлов Kubernetes..."
 	@kubectl wait --for=condition=Ready nodes --all --timeout=300s
+	@echo "Обновление секрета KUBE_CONFIG в GitHub репозитории Dogafas/dip-app..."
+	@which gh >/dev/null && gh secret set KUBE_CONFIG -R Dogafas/dip-app --body "$$(cat ~/.kube/config | base64 -w 0)" || echo "Внимание: gh cli не настроен, обновите KUBE_CONFIG вручную"
 	@echo "Актуализация IP-адресов в манифестах..."
-	# Исправлено: загружаем .env перед вызовом terraform
+	# Загружаем .env перед вызовом terraform
 	$(eval MASTER_IP := $(shell $(ENV_LOAD) cd terraform/environments/stage && terraform output -raw k8s_master_public_ip))
 	@sed -i "s/app\.[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\.nip\.io/app.$(MASTER_IP).nip.io/g" k8s/app/app.yaml
 	@sed -i "s/grafana\.[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\.nip\.io/grafana.$(MASTER_IP).nip.io/g" k8s/monitoring/values.yaml
@@ -67,13 +69,12 @@ apps-up:
 	@helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update
 	@helm repo update
 	@echo "Установка Ingress Controller..."
-	# Исправлено: загружаем .env перед helm командами
+	# Загружаем .env перед helm командами
 	@(cd k8s/ingress && $(ENV_LOAD) helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace -f values.yaml)
 	@echo "Развертывание приложения dip-app..."
 	@(cd k8s/app && $(ENV_LOAD) kubectl apply -f app.yaml)
 	@echo "Развертывание мониторинга..."
 	@(cd k8s/monitoring && $(ENV_LOAD) helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace -f values.yaml)
-
 down:
 	@echo "Уничтожение облачной инфраструктуры..."
 	@(cd terraform/environments/stage && $(ENV_LOAD) terraform destroy -auto-approve)
