@@ -24,7 +24,7 @@ spec:
                     operator: DoesNotExist
       containers:
         - name: dip-app
-          image: dogafas/dip-app:v1.0.1
+          image: datadynamo/dip-app:v1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
@@ -65,7 +65,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: app.89.169.145.154.nip.io
+    - host: app.93.77.178.211.nip.io
       http:
         paths:
           - path: /
