@@ -82,3 +82,10 @@ ansible-playbook -i inventory/mycluster/hosts.yaml --become --become-user=root c
 cd /.../.../.../dip-ops
 ./generate_inventory.sh
 ```
+
+##### Проверка / обновление секрета KUBE_CONFIG в GitHub:
+
+- Через GitHub CLI:
+```
+gh secret set KUBE_CONFIG -R Dogafas/dip-app --body "$(cat ~/.kube/config | base64 -w 0)"
+```

@@ -32,7 +32,7 @@ init-venv:
 
 infra-up:
 	@echo "Применение конфигурации Terraform..."
-	# Исправлено: загружаем .env ДО перехода в папку, либо используем абсолютный путь
+	# Загружаем .env ДО перехода в папку, либо используем абсолютный путь
 	@(cd terraform/environments/stage && $(ENV_LOAD) terraform init -input=false)
 	@(cd terraform/environments/stage && $(ENV_LOAD) terraform apply -auto-approve)
 
@@ -48,7 +48,7 @@ k8s-up:
 	# Загружаем .env перед выполнением скрипта
 	$(ENV_LOAD) ./generate_inventory.sh
 	@echo "Запуск Kubespray..."
-	# Исправлено: загружаем .env и активируем venv в одной команде
+	# Загружаем .env и активируем venv в одной команде
 	$(ENV_LOAD) bash -c "source $(VENV_DIR)/bin/activate && cd kubespray && ansible-playbook -i inventory/mycluster/hosts.yaml --become --become-user=root cluster.yml -e 'download_retries=10' -e 'download_timeout=60'"
 	@echo "Синхронизация kubeconfig..."
 	# Загружаем .env перед выполнением скрипта
