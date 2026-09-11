@@ -50,7 +50,7 @@
 
 2. Разработан оптимизированный многоэтапный [Dockerfile](https://github.com/Dogafas/dip-app/blob/main/Dockerfile).
 
-3. Публикация артефактов автоматизирована в публичном реестре **Docker Hub**: [datadynamo/dip-app](https://hub.docker.com/repository/docker/datadynamo/dip-app/general). Все релизы версионируются в соответствии с SemVer.
+3. Публикация артефактов автоматизирована в публичном реестре *Docker Hub*: [datadynamo/dip-app](https://hub.docker.com/repository/docker/datadynamo/dip-app/general). Все релизы версионируются в соответствии с SemVer.
 
 #### 4. *Подготовка системы мониторинга и деплой приложения*
 
@@ -66,7 +66,7 @@
 
    - Развернут Deployment (2 реплики) с распределением по рабочим нодам `node2` и `node3` через `nodeAffinity`, сервис `ClusterIP` и правило Ingress.
   
-   - Адресация настроена через wildcard DNS-сервис [nip.io](https://nip.io/): `<http://app>.<MASTER_IP>.nip.io/`.
+   - Адресация настроена через wildcard DNS-сервис [nip.io](https://nip.io): `http://app.<MASTER_IP>.nip.io`.
 
 3. **Стек мониторинга (kube-prometheus-stack):**
 
@@ -74,7 +74,7 @@
   
    - Автоматически развернуты и сконфигурированы: Prometheus, Alertmanager, Node Exporter (сбор метрик со всех узлов ВМ) и Grafana.
   
-   - Веб-интерфейс Grafana опубликован на 80 порту по адресу [http://grafana](http://grafana).<MASTER_IP>.nip.io/ с учетными данными:
+   - Веб-интерфейс Grafana опубликован на 80 порту по адресу **`http://grafana.<MASTER_IP>.nip.io`** с учетными данными:
 
      - Логин: `admin`
 
