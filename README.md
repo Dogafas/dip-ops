@@ -121,3 +121,20 @@
 |Уничтожение ресурсов |`make down` |Полная очистка облака для экономии ресурсов |
 
 #### 7. *Скриншоты*
+
+
+#### 8. *Настройка CI/CD в GitHub Actions*
+
+## Настройка CI/CD в GitHub Actions
+
+Пайплайн использует GitHub Actions для автоматической сборки Docker-образа и доставки в кластер Kubernetes при публикации релизных Git-тегов (`v*.*.*`).
+
+Для работы пайплайна в настройках репозитория (`Settings -> Secrets and variables -> Actions`) должны быть заданы следующие Repository Secrets:
+
+| Секрет | Описание |
+| :--- | :--- |
+| `DOCKERHUB_USERNAME` | Имя пользователя в реестре Docker Hub |
+| `DOCKERHUB_TOKEN` | Personal Access Token с правами Read & Write из Docker Hub |
+| `KUBE_CONFIG` | Содержимое `~/.kube/config` кластера в кодировке Base64 (`cat ~/.kube/config \| base64 -w 0`) |
+
+> **Примечание:** Если вы форкаете проект под своей учетной записью, убедитесь, что в переменной окружения `IMAGE_NAME` файла `.github/workflows/ci-cd.yml` указано ваше пространство имен на Docker Hub.

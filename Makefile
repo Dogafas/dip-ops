@@ -3,6 +3,9 @@ SHELL := /bin/bash
 # Используем абсолютный путь к .env через $(CURDIR)
 ENV_LOAD := $(if $(wildcard .env),set -a; source $(CURDIR)/.env; set +a;,true;)
 
+# Репозиторий приложения по умолчанию (переопределяется из .env)
+APP_REPO ?= Dogafas/dip-app
+
 .PHONY: all check-deps fetch-kubespray init-venv infra-up k8s-up apps-up up down clean
 
 VENV_DIR := kubespray/venv
@@ -68,8 +71,21 @@ k8s-up:
 apps-up:
 	@echo "Ожидание готовности узлов Kubernetes..."
 	@kubectl wait --for=condition=Ready nodes --all --timeout=300s
-	@echo "Обновление секрета KUBE_CONFIG в GitHub репозитории Dogafas/dip-app..."
-	@which gh >/dev/null && gh secret set KUBE_CONFIG -R Dogafas/dip-app --body "$$(cat ~/.kube/config | base64 -w 0)" || echo "Внимание: gh cli не настроен, обновите KUBE_CONFIG вручную"
+	@echo "Синхронизация секретов в GitHub Actions ($(APP_REPO))..."
+	@if which gh >/dev/null 2>&1; then \
+		echo "  -> Обновление KUBE_CONFIG..."; \
+		gh secret set KUBE_CONFIG -R $(APP_REPO) --body "$$(cat ~/.kube/config | base64 -w 0)" 2>/dev/null || true; \
+		if [ -n "$$DOCKERHUB_USERNAME" ]; then \
+			echo "  -> Обновление DOCKERHUB_USERNAME..."; \
+			gh secret set DOCKERHUB_USERNAME -R $(APP_REPO) --body "$$DOCKERHUB_USERNAME" 2>/dev/null || true; \
+		fi; \
+		if [ -n "$$DOCKERHUB_TOKEN" ]; then \
+			echo "  -> Обновление DOCKERHUB_TOKEN..."; \
+			gh secret set DOCKERHUB_TOKEN -R $(APP_REPO) --body "$$DOCKERHUB_TOKEN" 2>/dev/null || true; \
+		fi; \
+	else \
+		echo "Предупреждение: gh cli не найден или не авторизован. Обновите секреты в GitHub вручную."; \
+	fi
 	@echo "Актуализация IP-адресов в манифестах..."
 	$(eval MASTER_IP := $(shell $(ENV_LOAD) cd terraform/environments/stage && terraform output -raw k8s_master_public_ip))
 	@sed -i "s/app\.[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\.nip\.io/app.$(MASTER_IP).nip.io/g" k8s/app/app.yaml
