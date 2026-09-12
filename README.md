@@ -113,6 +113,11 @@
 | Компонент | Ссылка / Команда | Данные доступа / Статус |
 | ---- | ---- | ---- |
 |    Репозиторий dip-ops  |   [github.com/Dogafas/dip-ops](https://github.com/Dogafas/dip-ops)   |  IaC, Kubespray, Ingress, Monitoring    |
-|      |      |      |
+|   Репозиторий dip-app   |  [github.com/Dogafas/dip-app](github.com/Dogafas/dip-app)    |    Исходный код, Dockerfile, GitHub Actions  |
+|Реестр Docker Hub | [hub.docker.com/r/datadynamo/dip-app](hub.docker.com/r/datadynamo/dip-app) | Релизные теги 1.0.0 — 1.0.5
+| Тестовое приложение |`http://app.<MASTER_IP>.nip.io/`|HTTP/1.1 200 OK |
+|Панель Grafana |`http://grafana.<MASTER_IP>.nip.io/` | Логин: `admin` / Пароль: `prom-operator` |
+|Полный запуск проекта |`make up` |Автоматический подъем всей инфраструктуры с нуля |
+|Уничтожение ресурсов |`make down` |Полная очистка облака для экономии ресурсов |
 
 #### 7. *Скриншоты*
