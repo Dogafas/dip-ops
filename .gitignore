@@ -13,3 +13,5 @@ kubespray/
 kubespray/inventory/*
 !kubespray/inventory/mycluster/
 kubespray/venv/
+# Ignore all files in the root directory except README.md and README_old.md
+README_old.md
