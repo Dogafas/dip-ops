@@ -7,18 +7,40 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - grafana.93.77.178.211.nip.io
+      - grafana.51.250.89.49.nip.io
     paths:
       - /
     pathType: Prefix
 
+  # Ресурсы для основного контейнера Grafana
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 200m
       memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+  # Ресурсы для вспомогательных sidecar-контейнеров
+  sidecar:
+    dashboards:
+      enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 150m
+          memory: 256Mi
+    datasources:
+      enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 150m
+          memory: 256Mi
 
 # Настройки Prometheus
 prometheus:
